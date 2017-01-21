@@ -6,6 +6,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <random>
+<<<<<<< HEAD
 #include "waveSprites.hpp"
 #include "Score.hpp"
 
@@ -18,11 +19,17 @@ enum CATEGORY_BITS
 
 //GLOBAL STUFF
 b2Vec2 normaleWelle[5];
+=======
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 
 //Please dont judge me
 
 b2Vec2 Gravity(0.f, 98.1f);
 b2World World(Gravity);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 float boardPos = 0;
 bool down = true;
 
@@ -48,14 +55,22 @@ b2Body* CreateBox(b2World& World, int MouseX, int MouseY) //Board
 
 b2Body* CreateStatic(b2World& World, int x, int y)
 {
+<<<<<<< HEAD
 	b2PolygonShape Shape;
   	Shape.Set(normaleWelle, 5);
 
+=======
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 	b2BodyDef BodyDef;
 	BodyDef.position = b2Vec2(x, y);
 	BodyDef.type = b2_staticBody;
 	b2Body* Body = World.CreateBody(&BodyDef);
+<<<<<<< HEAD
 	//Shape.SetAsArray(normaleWelle, 5);//((1)/SCALE, (1)/SCALE);
+=======
+	b2PolygonShape Shape;
+	Shape.SetAsBox((1)/SCALE, (1)/SCALE);
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 	b2FixtureDef FixtureDef;
 	FixtureDef.density = 2.f; 
 	FixtureDef.friction = 1.f;
@@ -65,13 +80,31 @@ b2Body* CreateStatic(b2World& World, int x, int y)
 	return Body;
 }
 
+<<<<<<< HEAD
 void addForceBoard(float x, float y, b2Body* board, b2Body* player1, b2Body* player2)
 {
 	board->ApplyForce(b2Vec2(x*75, y*75), board->GetWorldCenter(), true);
+=======
+void moveOrigin(b2Joint* j, float x, float y, b2Body* fix, b2Body* board, b2RevoluteJointDef* jointDef)
+{
+	//b2Vec2 boardPos(board->GetTransform().p.x, board->GetTransform().p.y);
+	//b2Vec2 temp(fix->GetTransform().p.x + x, fix->GetTransform().p.y);
+	//fix->SetTransform(temp ,fix->GetAngle());
+	jointDef->bodyA = board;
+	jointDef->bodyB = fix;
+	std::cout << "Body A " << jointDef->bodyA << std::endl;
+	std::cout << "Body B "<< jointDef->bodyB  << std::endl;
+	jointDef->localAnchorA.Set(x,0);
+  	jointDef->localAnchorB.Set(0,0);
+	jointDef->collideConnected = false;
+	World.DestroyJoint(j);
+	j = World.CreateJoint( jointDef );
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 }
 
 int main()
 {
+<<<<<<< HEAD
 	normaleWelle[0].Set(-50,  70);
 	normaleWelle[1].Set(-20,  15);
 	normaleWelle[2].Set( 20, 0);
@@ -90,6 +123,27 @@ int main()
 	//Player 1 /75x131
 	b2BodyDef BodyDef;
 	BodyDef.position = b2Vec2(530/SCALE, 200/SCALE);
+=======
+	sf::Sprite SpriteWippe, SpritePlayer1, SpritePlayer2;
+	sf::RenderWindow window(sf::VideoMode(1244, 700), "BOX2D",  sf::Style::Close);
+	sf::Event event;
+	b2Joint* joint;
+	b2RevoluteJointDef* jointDef = new b2RevoluteJointDef();
+	sf::Texture GroundTexture, BoxTexture;
+	
+	b2Body* board = CreateBox(World, 622, 350);
+	b2Body* fix = CreateStatic(World, 622, board->GetPosition().y);
+	jointDef->bodyA = board;
+	jointDef->bodyB = fix;
+	jointDef->collideConnected = false;
+	jointDef->localAnchorA.Set(0, 0);
+	jointDef->localAnchorB.Set(0, 0);
+	joint = World.CreateJoint(jointDef);
+	
+	//Player 1 /75x131
+	b2BodyDef BodyDef;
+	BodyDef.position = b2Vec2(530/SCALE, 00/SCALE);
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 	BodyDef.type = b2_dynamicBody;
 	BodyDef.position.Set(530.f, 2.0f);
 	//BodyDef.gravityScale = 3.0f;
@@ -98,15 +152,24 @@ int main()
 	b2PolygonShape Shape;
 	Shape.SetAsBox((37.5f)/SCALE, (133)/SCALE);
 	b2FixtureDef FixtureDef;
+<<<<<<< HEAD
 	FixtureDef.density = 0.2f;
 	FixtureDef.friction = 0.5f;
 	FixtureDef.filter.categoryBits = BODY1_CATEGORY_BITS;
 	FixtureDef.filter.maskBits = BODY1_CATEGORY_BITS | BODY2_CATEGORY_BITS;
+=======
+	FixtureDef.density = 0.1f;
+	FixtureDef.friction = 0.5f;
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 	FixtureDef.shape = &Shape;
 	Player1->CreateFixture(&FixtureDef);
 	//Player 2
 	b2BodyDef BodyDef2;
+<<<<<<< HEAD
 	BodyDef2.position = b2Vec2(630/SCALE, 200/SCALE);
+=======
+	BodyDef2.position = b2Vec2(630/SCALE, 00/SCALE);
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 	BodyDef2.type = b2_dynamicBody;
 	//BodyDef2.gravityScale = 3.0f;
 	b2Body* Player2 = World.CreateBody(&BodyDef2);
@@ -114,11 +177,17 @@ int main()
 	b2PolygonShape Shape2;
 	Shape2.SetAsBox((37.5f)/SCALE, (133)/SCALE);
 	b2FixtureDef FixtureDef2;
+<<<<<<< HEAD
 	FixtureDef2.density = 0.2f;
 	FixtureDef2.friction = 0.5f;
 	FixtureDef2.shape = &Shape2;
 	FixtureDef2.filter.categoryBits = BODY3_CATEGORY_BITS;
    	FixtureDef2.filter.maskBits = BODY3_CATEGORY_BITS | BODY1_CATEGORY_BITS;
+=======
+	FixtureDef2.density = 0.1f;
+	FixtureDef2.friction = 0.5f;
+	FixtureDef2.shape = &Shape2;
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 	Player2->CreateFixture(&FixtureDef2);
 	
 	//Massdata
@@ -182,9 +251,15 @@ int main()
 		{
 			Player1->ApplyForce( b2Vec2(-impulse,0), Player1->GetWorldCenter() , true);
 		}
+<<<<<<< HEAD
 		else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 		{
 			Player1->ApplyForce( b2Vec2(0,Player1->GetMass() * 600), Player1->GetWorldCenter() , true);
+=======
+		else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+		{
+			Player1->ApplyForce( b2Vec2(0,-20), Player1->GetWorldCenter() , true);
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 		}
 		//Player 2
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
@@ -195,6 +270,7 @@ int main()
 		{
 			Player2->ApplyForce( b2Vec2(-impulse,0), Player2->GetWorldCenter() , true);
 		}
+<<<<<<< HEAD
 		else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 		{
 			Player2->ApplyForce( b2Vec2(0,Player2->GetMass() * 600), Player2->GetWorldCenter() , true);
@@ -203,13 +279,40 @@ int main()
 		if(Player1->GetTransform().p.y >= 600 || Player2->GetTransform().p.y >= 600)
 		{
 			//Game Over
+=======
+		else if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+		{
+			Player2->ApplyForce( b2Vec2(0,-20), Player2->GetWorldCenter() , true);
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 		}
 		//TEMP 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
+<<<<<<< HEAD
 			std::cout << "jump with force: " << board->GetMass() * 600  * 1000<< std::endl;
 			addForceBoard(0, board->GetMass() * -600, board, Player1, Player2);
 		}
+=======
+			if(boardPos < 70 && down)
+			{
+				moveOrigin(joint, boardPos++, 0, fix, board, jointDef);
+			}
+			else if(boardPos >= 70 && down)
+			{
+				moveOrigin(joint, boardPos++, 0, fix, board, jointDef);
+				down = false;
+			}
+			else if(boardPos <= -10 && !down)
+			{
+				down = true;
+			}
+			else
+			{
+				moveOrigin(joint, boardPos--, 0, fix, board, jointDef);
+			}
+		}
+
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 		World.Step(1/60.f, 8, 3);
 		window.clear(sf::Color::Black);
 		window.draw(Background);		
@@ -225,6 +328,7 @@ int main()
 		SpritePlayer2.setRotation(180/b2_pi * Player2->GetAngle());
 		SpritePlayer2.setPosition(SCALE * Player2->GetPosition().x, SCALE * Player2->GetPosition().y);
 		window.draw(SpritePlayer2);
+<<<<<<< HEAD
 		sprites.update();
 		score.update();
 		//fixPunktS.setPosition(Player1->GetWorldCenter().x, Player1->GetWorldCenter().y);
@@ -246,5 +350,15 @@ int main()
 		window.display();
 	}
 	//delete jointDef;
+=======
+		//Debug
+		//fixPunktS.setPosition(joint->GetBodyB()->GetWorldCenter().x, joint->GetBodyB()->GetWorldCenter().y);
+		//fixPunktS.setPosition(Player1->GetWorldCenter().x, Player1->GetWorldCenter().y);
+		//window.draw(fixPunktS);		
+		window.draw(bigWave);
+		window.display();
+	}
+	delete jointDef;
+>>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac
 	return 0;
 }

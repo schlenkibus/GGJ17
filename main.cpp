@@ -8,6 +8,8 @@
 #include <random>
 #include "waveSprites.hpp"
 #include "Score.hpp"
+#include "wassserPartikel.hpp"
+#include "frontWaves.hpp"
 
 enum CATEGORY_BITS
 {
@@ -72,14 +74,18 @@ void addForceBoard(float x, float y, b2Body* board, b2Body* player1, b2Body* pla
 
 int main()
 {
+	//Welllelele
 	normaleWelle[0].Set(-50,  70);
 	normaleWelle[1].Set(-20,  15);
-	normaleWelle[2].Set( 20, 0);
-	normaleWelle[3].Set( 50,  -2);
+	normaleWelle[2].Set( 20, -5);
+	normaleWelle[3].Set( 70,  10
+);
 	normaleWelle[4].Set(90,  50);
 	sf::Sprite SpriteWippe, SpritePlayer1, SpritePlayer2;
 	sf::RenderWindow window(sf::VideoMode(1244, 700), "BOX2D",  sf::Style::Close);
 	WaveSprites sprites(&window);
+	Partikel wasserSpritzer(&window);
+	Front front(&window);
 	Score score(&window);
 	sf::Event event;
 	sf::Texture GroundTexture, BoxTexture;
@@ -125,6 +131,7 @@ int main()
 	b2MassData PlayerMass;
 	PlayerMass.mass = 90;
 	PlayerMass.center = b2Vec2(0, 131);
+	PlayerMass.I = 0;
 
 	Player2->SetMassData(&PlayerMass);
 	Player1->SetMassData(&PlayerMass);
@@ -226,12 +233,15 @@ int main()
 		SpritePlayer2.setPosition(SCALE * Player2->GetPosition().x, SCALE * Player2->GetPosition().y);
 		window.draw(SpritePlayer2);
 		sprites.update();
+		wasserSpritzer.update();
 		score.update();
+		front.update();
 		//fixPunktS.setPosition(Player1->GetWorldCenter().x, Player1->GetWorldCenter().y);
 		//window.draw(fixPunktS);		
 		sprites.draw();
+		wasserSpritzer.draw();
 		score.draw();
-
+		front.draw();
 		for(int i = 0; i < 5; i++)
 		{
 			sf::Vector2f temp;

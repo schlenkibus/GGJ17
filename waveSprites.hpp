@@ -1,5 +1,4 @@
 #include "SFML/Graphics.hpp"
-<<<<<<< HEAD
 #include <vector>
 class WaveSprites //Class for front stuff
 {
@@ -61,14 +60,3 @@ class WaveSprites //Class for front stuff
 	protected:
 	
 };
-=======
-
-class WaveSprites //Class for front stuff
-{
-	public:
-	WaveSprites()
-	{
-	
-	}
-}
->>>>>>> 870d670cdceda4ae1305d297952016fe83bcefac

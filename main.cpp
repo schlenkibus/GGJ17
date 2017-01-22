@@ -19,17 +19,19 @@ enum CATEGORY_BITS
 };
 
 //GLOBAL STUFF
-b2Vec2 normaleWelle[5];
+b2Vec2 normaleWelle[6];
 
 //Please dont judge me
 
-b2Vec2 Gravity(0.f, 98.1f);
+b2Vec2 Gravity(0.f, 198.1f);
 b2World World(Gravity);
 float boardPos = 0;
 bool down = true;
 
 #define SCALE 1
 #define acc 1.5
+#define randMaxX 40
+sf::Vector2f minMove(20, 10);
 b2Body* CreateBox(b2World& World, int MouseX, int MouseY) //Board
 {
 	b2BodyDef BodyDef;
@@ -41,7 +43,7 @@ b2Body* CreateBox(b2World& World, int MouseX, int MouseY) //Board
 	Shape.SetAsBox((200)/SCALE, (5)/SCALE);
 	b2FixtureDef FixtureDef;
 	FixtureDef.density = 0.0125f; //Fläche ist 4000 -> 50kg
-	FixtureDef.friction = 1.3f;
+	FixtureDef.friction = 0.2f;
 	FixtureDef.shape = &Shape;
 	Body->CreateFixture(&FixtureDef);
 	std::cout << "Wippe created" << std::endl;
@@ -51,19 +53,17 @@ b2Body* CreateBox(b2World& World, int MouseX, int MouseY) //Board
 b2Body* CreateStatic(b2World& World, int x, int y)
 {
 	b2PolygonShape Shape;
-  	Shape.Set(normaleWelle, 5);
+  	Shape.Set(normaleWelle, 6);
 
 	b2BodyDef BodyDef;
 	BodyDef.position = b2Vec2(x, y);
 	BodyDef.type = b2_staticBody;
 	b2Body* Body = World.CreateBody(&BodyDef);
-	//Shape.SetAsArray(normaleWelle, 5);//((1)/SCALE, (1)/SCALE);
 	b2FixtureDef FixtureDef;
 	FixtureDef.density = 2.f; 
 	FixtureDef.friction = 1.f;
 	FixtureDef.shape = &Shape;
 	Body->CreateFixture(&FixtureDef);
-	std::cout << "Fixed point created" << std::endl;
 	return Body;
 }
 
@@ -72,15 +72,48 @@ void addForceBoard(float x, float y, b2Body* board, b2Body* player1, b2Body* pla
 	board->ApplyForce(b2Vec2(x*75, y*75), board->GetWorldCenter(), true);
 }
 
+void addRandomForce(b2Body* board)
+{
+	int random_force = std::rand()%50+300;
+	int random_dir = rand() % 4;
+	b2Vec2 temp;
+	switch(random_dir)
+	{
+		case 0:
+			//up;
+			temp.y = -random_force*board->GetMass()*2;
+		break;
+		case 1:
+			temp.y = random_force*board->GetMass()*2;
+			//down;
+		break;
+		case 2:
+			if(board->GetTransform().p.x >= randMaxX + 622)
+				random_force = random_force * -1;
+			temp.x = random_force*board->GetMass()*20;
+			//left;
+		break;
+		case 3:
+			if(board->GetTransform().p.x <= -randMaxX + 622)
+				random_force = random_force * -1;
+			temp.x = -random_force*board->GetMass()*20;
+			//right
+		break;
+	}
+	board->ApplyForce(temp, board->GetWorldCenter(), true);
+}
+
 int main()
 {
+	 std::srand(std::time(0)); // use current time as seed for random generator
 	//Welllelele
-	normaleWelle[0].Set(-50,  70);
-	normaleWelle[1].Set(-20,  15);
-	normaleWelle[2].Set( 20, -5);
-	normaleWelle[3].Set( 70,  10
-);
-	normaleWelle[4].Set(90,  50);
+	normaleWelle[0].Set(-65,  75);
+	normaleWelle[1].Set(-50, 40);
+	normaleWelle[2].Set(-20,  15);
+	normaleWelle[3].Set( 20, 0);
+	normaleWelle[4].Set( 70,  0);
+	normaleWelle[5].Set(100, 10);
+
 	sf::Sprite SpriteWippe, SpritePlayer1, SpritePlayer2;
 	sf::RenderWindow window(sf::VideoMode(1244, 700), "BOX2D",  sf::Style::Close);
 	WaveSprites sprites(&window);
@@ -89,10 +122,11 @@ int main()
 	Score score(&window);
 	sf::Event event;
 	sf::Texture GroundTexture, BoxTexture;
-	
+	sf::Clock player1MinMoveClock, player2MinMoveClock;
+	sf::Time player1lastTime, player2lastTime;
 	b2Body* board = CreateBox(World, 622, 350);
 	b2Body* fix = CreateStatic(World, 622, board->GetPosition().y + 5);
-	
+
 	//Player 1 /75x131
 	b2BodyDef BodyDef;
 	BodyDef.position = b2Vec2(530/SCALE, 200/SCALE);
@@ -105,7 +139,7 @@ int main()
 	Shape.SetAsBox((37.5f)/SCALE, (133)/SCALE);
 	b2FixtureDef FixtureDef;
 	FixtureDef.density = 0.2f;
-	FixtureDef.friction = 0.5f;
+	FixtureDef.friction = 0.2f;
 	FixtureDef.filter.categoryBits = BODY1_CATEGORY_BITS;
 	FixtureDef.filter.maskBits = BODY1_CATEGORY_BITS | BODY2_CATEGORY_BITS;
 	FixtureDef.shape = &Shape;
@@ -121,7 +155,7 @@ int main()
 	Shape2.SetAsBox((37.5f)/SCALE, (133)/SCALE);
 	b2FixtureDef FixtureDef2;
 	FixtureDef2.density = 0.2f;
-	FixtureDef2.friction = 0.5f;
+	FixtureDef2.friction = 0.2f;
 	FixtureDef2.shape = &Shape2;
 	FixtureDef2.filter.categoryBits = BODY3_CATEGORY_BITS;
    	FixtureDef2.filter.maskBits = BODY3_CATEGORY_BITS | BODY1_CATEGORY_BITS;
@@ -159,6 +193,9 @@ int main()
 	float impulse;
 	float impulse2;
 
+	//Score stuff
+	sf::Vector2f player1last;
+	sf::Vector2f player2last;
 	//INIT
 	SpritePlayer2.setTexture(BoxTexture);
 	SpritePlayer2.setColor(sf::Color::Blue);
@@ -169,6 +206,17 @@ int main()
 	SpritePlayer1.setOrigin(37.5, 0);
 	bigWave.setPosition(605, 347);
 	bigWave.setOrigin(bigWave.getGlobalBounds().width / 2, 0);
+
+	player1last = SpritePlayer1.getPosition();	
+	player2last = SpritePlayer2.getPosition();	
+	player1lastTime = player1MinMoveClock.getElapsedTime();	
+	player2lastTime = player2MinMoveClock.getElapsedTime(); 
+
+	int bonusDelay = 0;	
+	bool player1inactive = false;
+	bool player2inactive = false;
+	bool activenow1 = true;
+	bool activenow2 = true;
 	while(window.isOpen())
 	{
 		while(window.pollEvent(event))
@@ -184,10 +232,12 @@ int main()
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 		{
 			Player1->ApplyForce( b2Vec2(impulse,0), Player1->GetWorldCenter() , true);
+			activenow1 = true;
 		}
 		else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 		{
 			Player1->ApplyForce( b2Vec2(-impulse,0), Player1->GetWorldCenter() , true);
+			activenow1 = true;
 		}
 		else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 		{
@@ -197,10 +247,12 @@ int main()
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 		{
 			Player2->ApplyForce( b2Vec2(impulse,0), Player2->GetWorldCenter() , true);
+			activenow2 = true;
 		}
 		else if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 		{
 			Player2->ApplyForce( b2Vec2(-impulse,0), Player2->GetWorldCenter() , true);
+			activenow2 = true;
 		}
 		else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 		{
@@ -209,13 +261,52 @@ int main()
 		//Point system
 		if(Player1->GetTransform().p.y >= 600 || Player2->GetTransform().p.y >= 600)
 		{
-			//Game Over
+			score.setEnd();
 		}
 		//TEMP 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
-			std::cout << "jump with force: " << board->GetMass() * 600  * 1000<< std::endl;
 			addForceBoard(0, board->GetMass() * -600, board, Player1, Player2);
+		}
+		//if(sf::Keyboard::isKeyPressed(sf::Keyboard::F))
+		//{
+			//std::cout << "random force" << std::endl;
+			addRandomForce(board);
+		//}
+		//Score negative bonus
+		if(SpritePlayer2.getPosition().x- player2last.x < -minMove.x ||  
+		SpritePlayer2.getPosition().x- player2last.x > minMove.x && activenow2)
+		{
+			if(player2MinMoveClock.getElapsedTime().asSeconds() - player2lastTime.asSeconds() >= 2)
+			{
+				activenow2 = false;
+				score.setBonus(-2);
+				player2last = SpritePlayer2.getPosition();
+				player2lastTime = player2MinMoveClock.getElapsedTime();
+			}
+		}
+		if(SpritePlayer1.getPosition().x- player1last.x < -minMove.x ||  
+		SpritePlayer1.getPosition().x- player1last.x > minMove.x && activenow1)
+		{
+			if(player1MinMoveClock.getElapsedTime().asSeconds() - player1lastTime.asSeconds() >= 2)
+			{
+				activenow1 = false;
+				score.setBonus(-2);
+				player1last = SpritePlayer1.getPosition();
+				player1lastTime = player1MinMoveClock.getElapsedTime();
+			}
+		}
+		if(activenow2 && activenow1)
+		{
+			if(bonusDelay >= 30)
+			{
+				bonusDelay = 0;
+				score.setBonus(0);
+			}
+			else
+			{
+				bonusDelay++;
+			}
 		}
 		World.Step(1/60.f, 8, 3);
 		window.clear(sf::Color::Black);
@@ -242,7 +333,7 @@ int main()
 		wasserSpritzer.draw();
 		score.draw();
 		front.draw();
-		for(int i = 0; i < 5; i++)
+		for(int i = 0; i < (sizeof(normaleWelle)/sizeof(*normaleWelle)); i++)
 		{
 			sf::Vector2f temp;
 			temp.x = normaleWelle[i].x;

@@ -1,4 +1,5 @@
 #include "SFML/Graphics.hpp"
+#include "SFML/Audio.hpp"
 #include "Box2D/Box2D.h"
 #include <iostream>
 #include <cmath>
@@ -10,6 +11,18 @@
 #include "Score.hpp"
 #include "wassserPartikel.hpp"
 #include "frontWaves.hpp"
+#include "Qualle.hpp"
+#include "FrontWave2.hpp"
+#include "FrontWave3.hpp"
+#include "UI.hpp"
+#include "Menu.hpp"
+
+enum gameState
+{
+	menu, intro, credits, game, close
+};
+
+gameState state;
 
 enum CATEGORY_BITS
 {
@@ -46,7 +59,6 @@ b2Body* CreateBox(b2World& World, int MouseX, int MouseY) //Board
 	FixtureDef.friction = 0.2f;
 	FixtureDef.shape = &Shape;
 	Body->CreateFixture(&FixtureDef);
-	std::cout << "Wippe created" << std::endl;
 	return Body;
 }
 
@@ -105,7 +117,43 @@ void addRandomForce(b2Body* board)
 
 int main()
 {
-	 std::srand(std::time(0)); // use current time as seed for random generator
+	sf::RenderWindow window(sf::VideoMode(1244, 700), "BOX2D",  sf::Style::Close);
+	sf::Event menuEvent;
+	state = gameState::menu;
+	Menu menu(&window);
+	while(window.isOpen() && state == gameState::menu)
+	{
+		while(window.pollEvent(menuEvent))
+		{
+			if(menuEvent.type == sf::Event::Closed)
+			{
+				window.close();
+				state = gameState::close;
+			}
+		}
+		window.clear();
+		menu.update();
+		switch(menu.getState())
+		{
+			case 0:
+				//PLAY
+			break;
+			case 1:
+				//EXIT
+			break;
+			case 2:
+				//Credits
+			break;
+		}
+		menu.draw();
+		window.display();
+	}
+	//TODO Menu und Intro einfügen
+	std::cout << "Start Game" << std::endl;
+	sf::Music backgroundMusic;
+	backgroundMusic.openFromFile("HULA.wav");
+	backgroundMusic.setLoop(true);
+	std::srand(std::time(0)); // use current time as seed for random generator
 	//Welllelele
 	normaleWelle[0].Set(-65,  75);
 	normaleWelle[1].Set(-50, 40);
@@ -115,7 +163,6 @@ int main()
 	normaleWelle[5].Set(100, 10);
 
 	sf::Sprite SpriteWippe, SpritePlayer1, SpritePlayer2;
-	sf::RenderWindow window(sf::VideoMode(1244, 700), "BOX2D",  sf::Style::Close);
 	WaveSprites sprites(&window);
 	Partikel wasserSpritzer(&window);
 	Front front(&window);
@@ -181,9 +228,9 @@ int main()
 	Background.setPosition(0, 0);
 	Background.setTexture(BackgroundTex);
 	GroundTexture.loadFromFile("ground.png");
-	BoxTexture.loadFromFile("box.png");
+	BoxTexture.loadFromFile("Character.png");
 	window.setFramerateLimit(60);
-
+	
 	//Debug
 	sf::CircleShape fixPunktS;
 	fixPunktS.setPosition(fix->GetPosition().x,fix->GetPosition().y);
@@ -212,11 +259,25 @@ int main()
 	player1lastTime = player1MinMoveClock.getElapsedTime();	
 	player2lastTime = player2MinMoveClock.getElapsedTime(); 
 
+	//Stuff
+	Qualle qualle(&window);
+	Front2 front2(&window);
+	Front3 front3(&window);
+	UI ui(&window);
+	ui.setReady(false);
+
+	sf::Clock jumpTimer;
+	sf::Time lastJump = jumpTimer.getElapsedTime();
+	sf::Time currJump;
+
 	int bonusDelay = 0;	
 	bool player1inactive = false;
 	bool player2inactive = false;
 	bool activenow1 = true;
 	bool activenow2 = true;
+	bool canJump = false;
+
+	backgroundMusic.play();
 	while(window.isOpen())
 	{
 		while(window.pollEvent(event))
@@ -264,16 +325,21 @@ int main()
 			score.setEnd();
 		}
 		//TEMP 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+		if(jumpTimer.getElapsedTime().asSeconds() - lastJump.asSeconds() > 10)
 		{
-			addForceBoard(0, board->GetMass() * -600, board, Player1, Player2);
+			ui.setReady(true);
+			canJump = true;
 		}
-		//if(sf::Keyboard::isKeyPressed(sf::Keyboard::F))
-		//{
-			//std::cout << "random force" << std::endl;
-			addRandomForce(board);
-		//}
-		//Score negative bonus
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && canJump)
+		{
+			ui.setReady(false);
+			addForceBoard(0, board->GetMass() * -1900, board, Player1, Player2);
+			canJump = false;
+			lastJump = jumpTimer.getElapsedTime();
+		}
+
+		addRandomForce(board);
+
 		if(SpritePlayer2.getPosition().x- player2last.x < -minMove.x ||  
 		SpritePlayer2.getPosition().x- player2last.x > minMove.x && activenow2)
 		{
@@ -311,6 +377,8 @@ int main()
 		World.Step(1/60.f, 8, 3);
 		window.clear(sf::Color::Black);
 		window.draw(Background);		
+		front2.update();		
+		front2.draw();
 		//Handle Wippe	
 		SpriteWippe.setPosition(board->GetPosition().x, board->GetPosition().y);
 		SpriteWippe.setRotation(180/b2_pi * board->GetAngle());
@@ -323,17 +391,24 @@ int main()
 		SpritePlayer2.setRotation(180/b2_pi * Player2->GetAngle());
 		SpritePlayer2.setPosition(SCALE * Player2->GetPosition().x, SCALE * Player2->GetPosition().y);
 		window.draw(SpritePlayer2);
+
 		sprites.update();
 		wasserSpritzer.update();
 		score.update();
 		front.update();
 		//fixPunktS.setPosition(Player1->GetWorldCenter().x, Player1->GetWorldCenter().y);
-		//window.draw(fixPunktS);		
+		//window.draw(fixPunktS);
+		
 		sprites.draw();
 		wasserSpritzer.draw();
+		qualle.update();
+		qualle.draw();
 		score.draw();
+		front3.update();
+		front3.draw();
 		front.draw();
-		for(int i = 0; i < (sizeof(normaleWelle)/sizeof(*normaleWelle)); i++)
+		ui.draw();
+		/*for(int i = 0; i < (sizeof(normaleWelle)/sizeof(*normaleWelle)); i++)
 		{
 			sf::Vector2f temp;
 			temp.x = normaleWelle[i].x;
@@ -342,7 +417,7 @@ int main()
 			temp.y += 355;
 			fixPunktS.setPosition(temp);
 			window.draw(fixPunktS);
-		}		
+		}		*/
 		//window.draw();
 		window.display();
 	}

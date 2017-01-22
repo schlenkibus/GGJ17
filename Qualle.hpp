@@ -12,6 +12,7 @@ class Qualle
 			this->window = window;
 			tex.loadFromFile("Qualle.png");
 			sprite.setTexture(tex);
+			sprite.setPosition(1333, 550);
 		}
 		~Qualle()
 		{
@@ -19,11 +20,13 @@ class Qualle
 		}
 		void draw()
 		{
-			window->draw(shape);
+			window->draw(sprite);
 		}
 		void update()
 		{
-			if(shape.getPosition().x <= 
-			shape.move(-2, 0);
+			if(sprite.getPosition().x >= 30)		
+				sprite.move(-2, 0);
+			else
+				sprite.move(-2000, 0);
 		}
-}:
+};

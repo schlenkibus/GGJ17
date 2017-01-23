@@ -1,6 +1,7 @@
 #include "SFML/Graphics.hpp"
 #include <sstream>
 #include <string>
+
 class Score
 {
 	protected:
@@ -27,7 +28,7 @@ class Score
 			/*text.setOutlineThickness(3.4f);
 			text.setOutlineColor(sf::Color::Black);*/
 			text.setFont(font);
-			text.setPosition(600, 100);
+			text.setPosition(500, 0);
 			text.setString("Score: ");
 			score = 0;
 			delay = 0;
@@ -54,11 +55,14 @@ class Score
 		}
 		void setBonus(long value)
 		{	
+			if(running)
+			{
 			if(value < 0)
 				text.setColor(sf::Color::Red);
 			else
 				text.setColor(sf::Color::Green);
 			bonus = value;
+			}	
 		}
 		void setEnd()
 		{
